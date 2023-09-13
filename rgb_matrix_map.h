@@ -17,8 +17,12 @@
 #ifdef RGB_MATRIX_ENABLE
 
     // Custom RGB Colours
-    #define RGB_GODSPEED 0x00, 0xE4, 0xFF // colour for matching keycaps
-    #define RGB_NAUTILUS 0x00, 0xA4, 0xA9 // Naurilus Font colours
+    // #define RGB_GODSPEED 0x00, 0xE4, 0xFF // colour for matching keycaps
+    // #define RGB_NAUTILUS 0x00, 0xA4, 0xA9 // Naurilus Font colours
+    #define RGB_DARK_GREEN 0x00, 0x08, 0x00
+    #define RGB_SEA_GREEN 0x00, 0x10, 0x06
+    #define RGB_GREEN_YELLOW 0x08, 0x10, 0x00
+    #define RGB_CYAN_DIM 0x00, 0x10, 0x10
 
     // RGB LED locations
     enum led_location_map {
