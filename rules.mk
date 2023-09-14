@@ -2,6 +2,7 @@ DECOUNCE_TYPE = sym_defer_pr
 
 ENCODER_ENABLE = yes
 BOOTMAGIC_ENABLE = yes
+NKRO_ENABLE = yes
 
 RGB_MATRIX_ENABLE = yes
 
