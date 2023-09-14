@@ -1,0 +1,48 @@
+
+/*
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    printf("IN PROCESS_RECORD_USER\n");
+    switch(keycode) {
+        case LT(0, KC_NO):
+            if (!record->tap.count && record->event.pressed) {
+                printf("CAPS HOLDING\n");
+                layer_on(_FN);
+            } else if (record->event.pressed) {
+                printf("CAPS PRESSED\n");
+                tap_code16(KC_ESC);
+            }
+            return false;
+            break;
+    }
+    return true;
+}
+*/
+
+/*
+void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    printf("IN POST_PROCESS_RECORD_USER");
+    printf("Row: %"PRIu8", Col: %"PRIu8"\n", record->event.key.col, record->event.key.col);
+    switch(keycode) {
+        case LT(0, KC_NO):
+            layer_off(_FN);
+            break; 
+    }
+}
+*/
+
+struct eeprom_length {
+    uint32_t raw[2];
+} eeprom_length;
+
+// EEPROM Memory
+typedef union {
+    // uint64_t raw;
+    eeprom_length raw;
+    struct {
+        uint8_t h; // HSV Value for stored RGB on keyboard
+        uint8_t s;
+        uint8_t v;
+        uint8_t rgb_effect;
+        uint8_t rgb_enable :1;
+    };
+} user_config_t;

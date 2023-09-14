@@ -15,19 +15,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include QMK_KEYBOARD_H
+#include "config.h"
 #include "rgb_matrix_map.h"
 
+// EEPROM Memory. Avoid writing too much as it has limited writes
+typedef union {
+    uint32_t raw;
+    struct {
+        uint8_t layer :4;
+    };
+} user_config_t;
+
+user_config_t user_config;
+
+// Layer Aliases
 enum layers {
-    _BASE = 0,
-    _VIM = 1,
-    _FN = 2
+    _BASE = 0, // Default Layer
+    _VIM = 1,  // Vim Layer
+    _JAP = 2,  // Japanese Layer
+    _FN = 3    // Funtion Layer
 };
 
 enum new_keycodes {
     KCM_CAPS = SAFE_RANGE
 };
-
-
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -71,7 +82,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     [_FN] = LAYOUT(
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
-        _______, TO(_BASE), TO(_VIM), _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
+        _______, TO(_BASE), TO(_VIM), _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, EE_CLR,          _______,
         _______, _______, _______, _______, RGB_VAI, RGB_TOG, _______, _______, _______, _______, _______, _______, _______, QK_BOOT,          _______,
         _______, _______, _______, _______, RGB_VAD, _______, _______, _______, _______, _______, _______, _______,          _______,          _______,
         _______,          _______, _______, KC_CAPS, RGB_HUI, DB_TOGG, NK_TOGG, _______, _______, _______, _______,          KC_MPLY, RGB_MOD, _______,
@@ -80,6 +91,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 // clang-format on
 
+/*
+    Time delay to interpret a key press as a hold
+    See config.h for time value
+*/
 uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
     switch(keycode) {
         default:
@@ -101,40 +116,23 @@ const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][NUM_DIRECTIONS] = {
 void keyboard_post_init_user(void) {
     debug_enable=true;
     // debug_matrix=true;
-    layer_on(_VIM); // Set layer to VIM. Less annoyance during development
-    rgb_matrix_mode(RGB_MATRIX_NONE);
+
+    user_config.raw = eeconfig_read_user();
+    layer_on(user_config.layer);
+    // layer_on(_VIM); // Set layer to VIM. Less annoyance during development
 }
 
-/*
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    printf("IN PROCESS_RECORD_USER\n");
-    switch(keycode) {
-        case LT(0, KC_NO):
-            if (!record->tap.count && record->event.pressed) {
-                printf("CAPS HOLDING\n");
-                layer_on(_FN);
-            } else if (record->event.pressed) {
-                printf("CAPS PRESSED\n");
-                tap_code16(KC_ESC);
-            }
-            return false;
-            break;
-    }
-    return true;
-}
-*/
-
-/*
 void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
-    printf("IN POST_PROCESS_RECORD_USER");
-    printf("Row: %"PRIu8", Col: %"PRIu8"\n", record->event.key.col, record->event.key.col);
-    switch(keycode) {
-        case LT(0, KC_NO):
-            layer_off(_FN);
-            break; 
+    // printf("post_process_record_user: ");
+
+    // Update EEPROM Layer if layer is changed
+    uint8_t cur_layer = get_highest_layer(layer_state);
+    if (cur_layer != _FN && cur_layer != user_config.layer) {
+        // printf("CHANGING LAYER to %d\n", cur_layer);
+        user_config.layer = cur_layer;
+        eeconfig_update_user(user_config.raw);
     }
 }
-*/
 
 /*
     RGB Behavior
@@ -163,3 +161,20 @@ bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
     };
     return false;
 }
+
+/*
+    Called when EEPROM (Persistent Memory) is reset by user
+*/
+void eeconfig_init_user(void) {
+    user_config.raw = 0; // Clear EEPROM Struct
+    user_config.layer = 1; // VIM Layer
+    rgb_matrix_enable();
+    rgb_matrix_sethsv(120, 100, 0);
+    rgb_matrix_mode(1);
+    rgb_matrix_set_speed(64);
+    eeconfig_update_user(user_config.raw); // Write Struct to EEPROM.
+}
+
+// OPTIMIZATIONS
+uint16_t keycode_config(uint16_t keycode) { return keycode; }
+uint8_t mod_config(uint8_t mod) { return mod; }
